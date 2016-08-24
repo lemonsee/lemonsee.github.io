@@ -68,7 +68,7 @@
 <link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="机器学习基石,学习笔记," />
+  <meta name="keywords" content="序列,拟合,递推式,least-squares," />
 
 
 
@@ -84,26 +84,30 @@
 
 
 
-<meta name="description" content="什么时候，机器能够学到东西 ？以下内容整理自台湾大学林轩田老师的线上课程 -《机器学习基石》
-&amp;emsp;&amp;emsp;要弄清楚什么这个问题，首先我们得弄明白另一个问题，那就是: 什么是机器学习 ?
-&amp;emsp;&amp;emsp;举个例子 ， 如果某人想去学习英语口语，那么他会怎么做呢？ 方法自然不会只有一种，但不管用什么方法，都必须得找到一些学习资料。找到学习资料之后呢？ 必须得练习吧，比如大声读度音标">
+<meta name="description" content="问题提出：&amp;emsp;&amp;emsp;有目标函数: $$y(t) = 0.2 + 0.3y(t-7)+e\,\,,\,\, e\sim N(0,1),t为正整数$$&amp;emsp;&amp;emsp;有初始化序列：$$[y(1),y(2),\cdots,y(7)]=[10,20,30,40,50,60,70]$$&amp;emsp;&amp;emsp;根据目标函数生成了100个数据 $$y(8),y(9),\cdots,y(10">
 <meta property="og:type" content="article">
-<meta property="og:title" content="when can machine learning">
-<meta property="og:url" content="http://yoursite.com/2014/05/11/what-and-when/index.html">
-<meta property="og:site_name" content="Lemon's Blog">
-<meta property="og:description" content="什么时候，机器能够学到东西 ？以下内容整理自台湾大学林轩田老师的线上课程 -《机器学习基石》
-&amp;emsp;&amp;emsp;要弄清楚什么这个问题，首先我们得弄明白另一个问题，那就是: 什么是机器学习 ?
-&amp;emsp;&amp;emsp;举个例子 ， 如果某人想去学习英语口语，那么他会怎么做呢？ 方法自然不会只有一种，但不管用什么方法，都必须得找到一些学习资料。找到学习资料之后呢？ 必须得练习吧，比如大声读度音标">
-<meta property="og:image" content="http://yoursite.com/imgs/ML_wcmcln/human_get_skill.png">
-<meta property="og:image" content="http://yoursite.com/imgs/ML_wcmcln/mach_get_skill.png">
-<meta property="og:image" content="http://yoursite.com/imgs/ML_wcmcln/recognize_trees.jpg">
-<meta property="og:updated_time" content="2016-08-15T22:31:47.000Z">
+<meta property="og:title" content="谈谈序列的一种拟合方法">
+<meta property="og:url" content="http://yoursite.com/2014/12/06/sequence-1/index.html">
+<meta property="og:site_name" content="世界和平">
+<meta property="og:description" content="问题提出：&amp;emsp;&amp;emsp;有目标函数: $$y(t) = 0.2 + 0.3y(t-7)+e\,\,,\,\, e\sim N(0,1),t为正整数$$&amp;emsp;&amp;emsp;有初始化序列：$$[y(1),y(2),\cdots,y(7)]=[10,20,30,40,50,60,70]$$&amp;emsp;&amp;emsp;根据目标函数生成了100个数据 $$y(8),y(9),\cdots,y(10">
+<meta property="og:image" content="http://yoursite.com/imgs/sequence/datapoint.png">
+<meta property="og:image" content="http://yoursite.com/imgs/sequence/output_10_7.png">
+<meta property="og:image" content="http://yoursite.com/imgs/sequence/output_10_f7.png">
+<meta property="og:image" content="http://yoursite.com/imgs/sequence/output_1_7.png">
+<meta property="og:image" content="http://yoursite.com/imgs/sequence/output_1_f7.png">
+<meta property="og:image" content="http://yoursite.com/imgs/sequence/linear-rg1.png">
+<meta property="og:image" content="http://yoursite.com/imgs/sequence/linear-rg2.png">
+<meta property="og:image" content="http://yoursite.com/imgs/sequence/linear-rg3.png">
+<meta property="og:image" content="http://yoursite.com/imgs/sequence/linear-rg4.png">
+<meta property="og:image" content="http://yoursite.com/imgs/sequence/linear-rg5.png">
+<meta property="og:image" content="http://yoursite.com/imgs/sequence/linear-rg6.png">
+<meta property="og:image" content="http://yoursite.com/imgs/sequence/linear-rg7.png">
+<meta property="og:image" content="http://yoursite.com/imgs/sequence/linear-rg8.png">
+<meta property="og:updated_time" content="2016-08-16T02:37:26.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="when can machine learning">
-<meta name="twitter:description" content="什么时候，机器能够学到东西 ？以下内容整理自台湾大学林轩田老师的线上课程 -《机器学习基石》
-&amp;emsp;&amp;emsp;要弄清楚什么这个问题，首先我们得弄明白另一个问题，那就是: 什么是机器学习 ?
-&amp;emsp;&amp;emsp;举个例子 ， 如果某人想去学习英语口语，那么他会怎么做呢？ 方法自然不会只有一种，但不管用什么方法，都必须得找到一些学习资料。找到学习资料之后呢？ 必须得练习吧，比如大声读度音标">
-<meta name="twitter:image" content="http://yoursite.com/imgs/ML_wcmcln/human_get_skill.png">
+<meta name="twitter:title" content="谈谈序列的一种拟合方法">
+<meta name="twitter:description" content="问题提出：&amp;emsp;&amp;emsp;有目标函数: $$y(t) = 0.2 + 0.3y(t-7)+e\,\,,\,\, e\sim N(0,1),t为正整数$$&amp;emsp;&amp;emsp;有初始化序列：$$[y(1),y(2),\cdots,y(7)]=[10,20,30,40,50,60,70]$$&amp;emsp;&amp;emsp;根据目标函数生成了100个数据 $$y(8),y(9),\cdots,y(10">
+<meta name="twitter:image" content="http://yoursite.com/imgs/sequence/datapoint.png">
 
 
 
@@ -121,7 +125,7 @@
   };
 </script>
 
-  <title> when can machine learning | Lemon's Blog </title>
+  <title> 谈谈序列的一种拟合方法 | 世界和平 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -162,11 +166,11 @@
   <div class="custom-logo-site-title">
     <a href="/"  class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
-      <span class="site-title">Lemon's Blog</span>
+      <span class="site-title">世界和平</span>
       <span class="logo-line-after"><i></i></span>
     </a>
   </div>
-  <p class="site-subtitle">A glass of lemonade</p>
+  <p class="site-subtitle">let's fuck the world</p>
 </div>
 
 <div class="site-nav-toggle">
@@ -261,7 +265,7 @@
             
             
               
-                when can machine learning
+                谈谈序列的一种拟合方法
               
             
           </h1>
@@ -273,8 +277,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2014-05-11T21:36:00+08:00" content="2014-05-11">
-              2014-05-11
+            <time itemprop="dateCreated" datetime="2014-12-06T21:45:58+08:00" content="2014-12-06">
+              2014-12-06
             </time>
           </span>
 
@@ -284,8 +288,8 @@
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2014/05/11/what-and-when/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2014/05/11/what-and-when/" itemprop="commentsCount"></span>
+                <a href="/2014/12/06/sequence-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2014/12/06/sequence-1/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -295,7 +299,7 @@
 
           
           
-             <span id="/2014/05/11/what-and-when/" class="leancloud_visitors" data-flag-title="when can machine learning">
+             <span id="/2014/12/06/sequence-1/" class="leancloud_visitors" data-flag-title="谈谈序列的一种拟合方法">
                &nbsp; | &nbsp;
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -317,25 +321,20 @@
       
 
       
-        <h4 id="什么时候，机器能够学到东西-？"><a href="#什么时候，机器能够学到东西-？" class="headerlink" title="什么时候，机器能够学到东西 ？"></a>什么时候，机器能够学到东西 ？</h4><p><em>以下内容整理自台湾大学林轩田老师的线上课程</em> -<a href="https://www.coursera.org/course/ntumlone" target="_blank" rel="external">《机器学习基石》</a></p>
-<p>&emsp;&emsp;要弄清楚什么这个问题，首先我们得弄明白另一个问题，那就是: <strong>什么是机器学习 ?</strong></p>
-<p>&emsp;&emsp;举个例子 ， 如果某人想去学习英语口语，那么他会怎么做呢？ 方法自然不会只有一种，但不管用什么方法，都必须得找到一些学习资料。找到学习资料之后呢？ 必须得练习吧，比如大声读度音标，原声模仿文章等。经过一番费劲训练，某人对口语终于有所领悟了。<br>  <a id="more"></a><br>&emsp;&emsp;学习的资料，是知识源（输入）。练习，是把资料蕴含的知识转化到脑袋里去。最终口语技能获得长进（输出）。</p>
-<p><img src="/imgs/ML_wcmcln/human_get_skill.png" alt=""></p>
-<ul>
-<li>机器学习，其实就是模仿这样一个过程 。<br>&emsp;&emsp;对应过来，机器的学习资料是数据（data）， 机器的训练是跑演算法（algorithm）， 最终提升某种技巧（skill）。</li>
-</ul>
-<p><img src="/imgs/ML_wcmcln/mach_get_skill.png" alt=""></p>
-<p>&emsp;&emsp;那对机器来说，这里的skill指什么呢？就是某种表现的提升，也就是犯更少的错误（类比上面的例子就是口语的语音语调更标准）。</p>
-<p>&emsp;&emsp;搞清楚了what is machine learning ， 现在就来思考:</p>
-<h4 id="When-can-machine-learning"><a href="#When-can-machine-learning" class="headerlink" title="When can machine learning"></a>When can machine learning</h4><p>&emsp;&emsp;如果你要让机器判断两个数的大小，很容易，为什么呢？因为比较两数的大小有明确且简单的定义（通过判断差是大于0，或小于0，或等于0）。那么，如果让机器识别这张图片所拍下的东西是不是一颗树呢？</p>
-<p><img src="/imgs/ML_wcmcln/recognize_trees.jpg" alt=""></p>
-<p>&emsp;&emsp;能不能通过程序定义规则去判断呢？比如统计绿色像素点的频率等等。但实际上，很多树的姿态是不一样的，叶子的颜色也不见得以绿色为主（比如说枫树），还有天气的影响，另外就是拍摄的角度问题。　显然，通过规则去定义一颗树是很困难的。<br>&emsp;&emsp;回想一下，我们人类是怎么学会辨认一颗树。不是因为记住了很多很多的规则，而是从小我们就被告知，那些是树，哪些不是树，久而久之，我们就学会了辨认树。<br>&emsp;&emsp;这种情况请下，我们就可以用机器学习的方法令机器具有识别树的能力。具体的来说，我们可以应用数字图像处理的方法，在预处理后，提取多个特征，比如灰度直方图，骨架，某些阶数的统计矩等等，再运用logistic regression 做一个“ 软 ”（即有多大的概率是一颗树） 判断。<br>总结一下，机器学习需要的三个条件</p>
-<ul>
-<li>问题的本身要存在规律</li>
-<li>这个规律很难用程序去定义</li>
-<li>有足够的反应这个规律的记录（数据）<br>&emsp;&emsp;第一条，想想看，当问题本身就是无规律的，对于无规律的规律，咋学习？<br>&emsp;&emsp;第二条，如果能用程序去定义的话，那就不需要机器学习了，直接用程序写规则解决问题。<br>&emsp;&emsp;第三条，即使前面的条件都满足了，但是如果没有足够的资料的话，机器拿什么东西去学习呢？<br>&emsp;&emsp;那么，但这三个条件都满足了，机器是不是就一定能学到东西呢？<h4 id="Not-really-不一定"><a href="#Not-really-不一定" class="headerlink" title="Not really , 不一定 !"></a><strong>Not really , 不一定 !</strong></h4></li>
-</ul>
-<p>&emsp;&emsp;回到最初那个例子，如果某人找到的资料不够理想，练习的方法也不太恰当（不敢抓老外），你说，这口语能练好吗？<br>　　所以 ，满足了上面的三个基本条件，也只能说，<strong>机器学习可能做到学习</strong>。要确保机器真正能学到东西，还需要良好的资料，合适的演算法。具体如何做到，在林老师后续的课程会慢慢揭晓。</p>
+        <h4 id="问题提出："><a href="#问题提出：" class="headerlink" title="问题提出："></a>问题提出：</h4><p>&emsp;&emsp;有目标函数: $$y(t) = 0.2 + 0.3y(t-7)+e\,\,,\,\, e\sim N(0,1),t为正整数$$<br>&emsp;&emsp;有初始化序列：$$[y(1),y(2),\cdots,y(7)]=[10,20,30,40,50,60,70]$$<br>&emsp;&emsp;根据目标函数生成了100个数据 $$y(8),y(9),\cdots,y(107)$$<br><a id="more"></a><br>&emsp;&emsp;如图：<br><img src="/imgs/sequence/datapoint.png" alt=""><br>&emsp;&emsp;求：假设我们不知到目标函数的具体参数，但我们知道模型是\(y(t) = a + b\cdot y(t-7)\),并且有数据\(y(1),y(2),\cdots,y(107)\)（即上图）<br>&emsp;&emsp;请解出\(a,b\)的值。</p>
+<p>####分析<br>&emsp;&emsp;题目的意思是已知函数模型以及数据集，求解模型里的参数。<br>&emsp;&emsp;首先考虑用怎么度量解(a,b)的好坏，这里选择平滑好用的度量方法—-欧氏距离。以下给出具体的代价函数：<br>$$ cost\,\,\, function :  J(a,b)  = \frac{1}{100}\cdot \sum_{i=8}^{107}((a+b\cdot y(i-7)) - y(i))^{2}$$<br>&emsp;&emsp;显然，模型是一个7阶的差分方程，既然是差分方程的话，是否可以考虑用\(Z\)变换去做？可否在二维空间里用群粒子算法或者遗传算法求出解（a,b）?其实，对于这总常系数差分序列的拟合，有一种简单、巧妙的处理方法—-转化为线性回归问题（least-squares programming 问题）。</p>
+<h4 id="破题"><a href="#破题" class="headerlink" title="破题"></a>破题</h4><hr>
+<p>&emsp;&emsp;由序列递推事可得：<br>$$ y(8) = a + b\cdot y(1) \\<br>    y(9) = a + b\cdot y(2) \\<br>    y(10) = a + b\cdot y(3) \\<br>    \vdots \\<br>    y(107) = a + b\cdot y(100)<br>$$<br>&emsp;&emsp;显然这里有一个参数矩阵。<br>&emsp;&emsp;把每一笔数据\(y(i)\)用2个维度的向量表示，而不是一个数值。<br>$$ X = \begin{bmatrix}<br>1 &amp;y(1) \\<br>1 &amp; y(2) \\<br>1 &amp; y(3) \\<br>\vdots \\<br>1 &amp; y(100)<br>\end{bmatrix} \,\,,\,X \in \mathbb{R}^{100 \times 2}$$<br><strong>注意，第一笔数据特征是\([1,y(1)]\)，标签值是y(8)</strong></p>
+<p>$$Y_p = XW = \begin{bmatrix}<br>1 &amp;y(1) \\<br>1 &amp; y(2) \\<br>1 &amp; y(3) \\<br>\vdots \\<br>1 &amp; y(100)<br>\end{bmatrix} \cdot<br>\begin{bmatrix}<br>a \\<br>b \\<br>\end{bmatrix}<br>$$<br>令 \(Y = \begin{bmatrix}<br>y(8) \\<br>y(9) \\<br>\vdots \\<br>y(107)<br>\end{bmatrix}<br>\)<br>&emsp;&emsp;到这里，问题已经转化为如下的least-squares programming 问题了。<br>$$ \min_{W}\,\,\, J(W(0),W(1))=J(a,b)  = \frac{1}{100}\cdot \sum_{i=8}^{107}((a+b\cdot y(i-7)) - y(i))^{2} $$<br>&emsp;&emsp;有解析解(后面有具体推导)：$$W = X^{\dagger} Y = (X^{T}X)^{-1}X^{T}Y$$<br>&emsp;&emsp;由此直接算出\(W\),即\( a,b\)的值。<br>&emsp;&emsp;拟合出来的效果如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">W =</div><div class="line">   0.116573700765463</div><div class="line">   0.295857735126161</div><div class="line"></div><div class="line">cost =</div><div class="line">   1.042281571564902</div></pre></td></tr></table></figure></p>
+<p><img src="/imgs/sequence/output_10_7.png" alt=""></p>
+<h2 id="更一般的做法"><a href="#更一般的做法" class="headerlink" title="####更一般的做法"></a>####更一般的做法</h2><p>&emsp;&emsp;假设现在只知道目标函数是7阶的常系数差分方程，而不知道具体的函数模型，如何求解？<br>&emsp;&emsp;方法同上，只是需要做一点点修改。<br>&emsp;&emsp;把每一笔数据\(y(i)\)用8个维度的向量表示成\(X_{q}(i)\)。<br>$$<br>X_{q}(i-7) = [ 1,y(i-7),y(i-6),y(i-5),y(i-4),y(i-3),y(i-2),y(i-1) ] \\<br>   i=8,9,10,\cdots,m+7<br>$$<br>&emsp;&emsp;即拟合模型是：<br>$$<br> y(t)= a+ b_{1}y(t-7) + b_{2}y(t-6)+ b_{3}y(t-5)+ b_{4}y(t-4)+ b_{5}y(t-3)+ b_{6}y(t-2)+ b_{7}y(t-1)<br>$$<br>&emsp;&emsp;同理求出 $$W_{q} = X_{q}^{\dagger} Y = (X_{q}^{T}X_{q})^{-1}X_{q}^{T}Y\,\,\,,\,W_{q} \in \mathbb{R^8}$$<br>&emsp;&emsp;拟合出来的效果如下图所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">Wq =</div><div class="line">   0.254232073618409</div><div class="line">   0.289206190751554</div><div class="line">  -0.000633472123790</div><div class="line">   0.000018960275785</div><div class="line">   0.008956957040519</div><div class="line">  -0.019245627029181</div><div class="line">   0.002814318547785</div><div class="line">  -0.003671158221363</div><div class="line"></div><div class="line">cost =</div><div class="line">   1.068767118660750</div></pre></td></tr></table></figure></p>
+<p><img src="/imgs/sequence/output_10_f7.png" alt=""><br>&emsp;&emsp;相信细心的读者已经注意到了\(W_q\)向量的前面两个数值。<br>&emsp;&emsp;这种序列拟合的方法到这里已经介绍完毕了，下面是一些进一步的分析,读者去留随意。Matlab代码下载<a href="http://pan.baidu.com/s/1i37UjK5" target="_blank" rel="external">点击这里</a></p>
+<p>####噪声，噪声，不死的噪声<br>&emsp;&emsp;我们知道，在采集数据的时候，不死的噪声总是无处不在，它们获得或多或少都会给模型的最终表现带来消极的影响。我们把初始化序列变为原来的0.1倍（试图增加噪声的影响力），<br>&emsp;&emsp;拟合的效果如图：<br><img src="/imgs/sequence/output_1_7.png" alt=""><br><img src="/imgs/sequence/output_1_f7.png" alt=""><br>&emsp;&emsp;我们可以看到，单从数据点上看的话，应该说情况太糟糕了，可又发现，即使这样拟合出来的曲线却没有那么糟糕，为什么呢？</p>
+<p>&emsp;&emsp;这里的噪声\(e\sim N(0,1)\)，是正态分布，均值为0。所以，也许(笔者暂时未能给出论证)对于线性回归模型（linear regression）来说该噪声是比较友好的,不会太捣蛋。</p>
+<p>&emsp;&emsp;最后有一个残忍的事实，尽管这个时候噪声看起来不捣蛋，但此时拟合出来的曲线似乎没多大意义了（t越大，预测出来的准确度严重受到噪声的影响。），从这个角度看，噪声还是捣蛋了%&gt;_&lt;%。</p>
+<h2 id="小结："><a href="#小结：" class="headerlink" title="####小结："></a>####小结：</h2><p>&emsp;&emsp;1. 这里如何消减噪声的带来的消极影响暂时还没找到很好办法。<br>&emsp;&emsp;2. 对于序列的处理方法有很多，比如<a href="http://lidequan12345.blog.163.com/blog/static/28985036201321074325444/" target="_blank" rel="external">移动平均模型(MA)、自回归移动平均模型(ARMA)以及差分自回归移动平均模型(ARIMA)</a><br>&emsp;&emsp;3. <strong>提出一个新问题</strong>：把问题进一步一般化，假设我们拿到数据集并且只知道是常系数差分递推序列（不知道多少阶），如何求解？</p>
+<h2 id="线性回归（Linear-regression）的解析解推导"><a href="#线性回归（Linear-regression）的解析解推导" class="headerlink" title="####线性回归（Linear regression）的解析解推导"></a>####<em>线性回归（Linear regression）的解析解推导</em></h2><p>&emsp;&emsp;台湾大学林老师的线上课程<a href="https://www.coursera.org/course/ntumlone" target="_blank" rel="external">《机器学习基石》</a>-第九讲有很明了的介绍，这里直接引用。<br>&emsp;&emsp;首先，我们表达式写成矩阵的形式。矩阵\(X\)的每一行是一笔数据，每一列是一个特征值。列向量\(W\)是权重参数向量。<br><img src="/imgs/sequence/linear-rg1.png" alt=""><br>&emsp;&emsp;得到<br><img src="/imgs/sequence/linear-rg2.png" alt=""><br>&emsp;&emsp;我们希望能找到一个\(W\)使得这个cost function 在各个方向上的梯度（偏导）都为0<br><img src="/imgs/sequence/linear-rg3.png" alt=""><br>&emsp;&emsp;为了方便求导，我们代换一下<br><img src="/imgs/sequence/linear-rg4.png" alt=""><br>&emsp;&emsp;求导<br><img src="/imgs/sequence/linear-rg5.png" alt=""><br>&emsp;&emsp;得到<br><img src="/imgs/sequence/linear-rg6.png" alt=""><br>&emsp;&emsp;问题简化成如下<br><img src="/imgs/sequence/linear-rg7.png" alt=""><br>&emsp;&emsp;推出结论<br><img src="/imgs/sequence/linear-rg8.png" alt=""></p>
+<p><strong>注意，这里的\(X\)是可逆的（即满秩）。当\(X\)是奇异矩阵（非满秩）的情况下就不太一样，这里不做讨论</strong></p>
 
       
     </div>
@@ -357,9 +356,13 @@
       
         <div class="post-tags">
           
-            <a href="/tags/机器学习基石/" rel="tag">#机器学习基石</a>
+            <a href="/tags/序列/" rel="tag">#序列</a>
           
-            <a href="/tags/学习笔记/" rel="tag">#学习笔记</a>
+            <a href="/tags/拟合/" rel="tag">#拟合</a>
+          
+            <a href="/tags/递推式/" rel="tag">#递推式</a>
+          
+            <a href="/tags/least-squares/" rel="tag">#least-squares</a>
           
         </div>
       
@@ -368,13 +371,13 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2014/12/06/sequence/" rel="next" title="谈谈序列的一种拟合方法">
+                <i class="fa fa-chevron-left"></i> 谈谈序列的一种拟合方法
+              </a>
+            
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2014/08/08/alibaba_bigdata_competition/" rel="prev" title="四个月的马拉松，到达终点就是胜利">
-                四个月的马拉松，到达终点就是胜利 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -423,8 +426,8 @@
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2014/05/11/what-and-when/"
-           data-title="when can machine learning" data-url="http://yoursite.com/2014/05/11/what-and-when/">
+      <div class="ds-thread" data-thread-key="2014/12/06/sequence-1/"
+           data-title="谈谈序列的一种拟合方法" data-url="http://yoursite.com/2014/12/06/sequence-1/">
       </div>
     
   </div>
@@ -469,24 +472,17 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-count">7</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
 
           
-            <div class="site-state-item site-state-categories">
-              
-                <span class="site-state-item-count">1</span>
-                <span class="site-state-item-name">分类</span>
-              
-            </div>
-          
 
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-count">15</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -529,7 +525,7 @@
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#什么时候，机器能够学到东西-？"><span class="nav-number">1.</span> <span class="nav-text">什么时候，机器能够学到东西 ？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#When-can-machine-learning"><span class="nav-number">2.</span> <span class="nav-text">When can machine learning</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Not-really-不一定"><span class="nav-number">3.</span> <span class="nav-text">Not really , 不一定 !</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#问题提出："><span class="nav-number">1.</span> <span class="nav-text">问题提出：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#破题"><span class="nav-number">2.</span> <span class="nav-text">破题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更一般的做法"><span class="nav-number"></span> <span class="nav-text">####更一般的做法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结："><span class="nav-number"></span> <span class="nav-text">####小结：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线性回归（Linear-regression）的解析解推导"><span class="nav-number"></span> <span class="nav-text">####线性回归（Linear regression）的解析解推导</span></a></div>
             
           </div>
         </section>
